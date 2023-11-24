@@ -1,11 +1,12 @@
 import os
+
 from parser import load
-from ui import ui_settings
+from ui import ui_settings, ui_main
 
 # Read config
-print("reading config file")
 current_dir= os.path.dirname(__file__)
 config_file = os.path.join(current_dir, "config.json")
+print(f"reading config file : {config_file}")
 config_datas = load._read_json(config_file)
 
 # Open settings if missing
@@ -19,5 +20,4 @@ for setting in config_datas:
 if config_datas["save_folder"]:
     print("loading save folder")
     available_kanbans = load._get_available_kabans(config_datas["save_folder"])
-
-    print(available_kanbans)
+    ui_main.draw_main(available_kanbans, config_datas, config_file)

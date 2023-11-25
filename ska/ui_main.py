@@ -5,17 +5,34 @@ from . import ui_settings, ui_browser, load
 def layout_colcontent(col_datas):
     col_layout = []
     for card in col_datas["cards"]:
+        line_number = card["content"].count('\n') + 1
 
         col_layout.append(
             [
             sg.Frame(
                 layout = [
-                    [sg.Text(card["description"])],
+                    [
+                        sg.MLine(
+                            card["content"],
+                            size=(25, line_number),
+                            expand_x=True,
+                            )
+                    ],
                     [
                         sg.Button(
                             "<-",
                             expand_x=True,
                             key=f"moveL_{card['name']}",
+                            ),
+                        sg.Button(
+                            "DWN",
+                            expand_x=True,
+                            key=f"moveDWN_{card['name']}",
+                            ),
+                        sg.Button(
+                            "UP",
+                            expand_x=True,
+                            key=f"moveUP_{card['name']}",
                             ),
                         sg.Button(
                             "->",
@@ -27,7 +44,7 @@ def layout_colcontent(col_datas):
                 title=card["name"],
                 # title_color='red',
                 relief=sg.RELIEF_SUNKEN,
-                tooltip=card["creation_date"],
+                tooltip=f"{card['creation_date']}\n{card['author']}",
                 expand_x=True,
                 )
             ]
@@ -39,7 +56,7 @@ def layout_colcontent(col_datas):
             expand_x=True,
             expand_y=True,
             scrollable=True,
-            vertical_scroll_only=True,
+            #vertical_scroll_only=True,
         )
         ]
 
@@ -69,8 +86,8 @@ def layout_selected_kanban(kb_datas):
                 column,
                 expand_x=True,
                 expand_y=True,
-                # scrollable=True,
-                # vertical_scroll_only=True,
+                #scrollable=True,
+                #vertical_scroll_only=True,
                 ),
             )
         n+=1

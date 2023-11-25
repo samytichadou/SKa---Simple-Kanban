@@ -2,6 +2,9 @@ import PySimpleGUI as sg
 
 from . import ui_settings, ui_browser, load
 
+def configure(event, canvas, frame_id):
+    canvas.itemconfig(frame_id, width=canvas.winfo_width())
+
 def layout_colcontent(col_datas):
     col_layout = []
     for card in col_datas["cards"]:
@@ -50,49 +53,45 @@ def layout_colcontent(col_datas):
             ]
         )
 
-    layout = [
-        sg.Column(
-            col_layout,
-            expand_x=True,
-            expand_y=True,
-            scrollable=True,
-            #vertical_scroll_only=True,
-        )
-        ]
-
         # layout.append(card_layout)
-    return layout
+    return col_layout
 
 def layout_selected_kanban(kb_datas):
     layout = []
+    scrollable_column_keys = []
 
     # Get columns
-    n=0
     for c in kb_datas["columns"]:
-        col_content = layout_colcontent(c)
+        key = f"col{c['index']}_{c['name']}"
         column = [
             [
                 sg.Text(
                     c["name"],
                     )
             ],
-            #[sg.HorizontalSeparator()],
-            col_content,
+            [sg.HorizontalSeparator()],
+            [sg.Column(
+                layout_colcontent(c),
+                expand_x=True,
+                expand_y=True,
+                scrollable=True,
+                vertical_scroll_only=True,
+                key=key,
+                )
+            ],
             ]
-        if n!=0:
+        if c["index"]!=0:
             layout.append(sg.VerticalSeparator())
         layout.append(
             sg.Column(
                 column,
                 expand_x=True,
                 expand_y=True,
-                #scrollable=True,
-                #vertical_scroll_only=True,
                 ),
             )
-        n+=1
-
-    return layout
+        scrollable_column_keys.append(key)
+    print(scrollable_column_keys)
+    return layout, scrollable_column_keys
 
 def draw_main(
     kb_datas,
@@ -133,7 +132,7 @@ def draw_main(
     ]
 
     # Get kb layout
-    kb_layout = layout_selected_kanban(kb_datas)
+    kb_layout, scrollable_column_list = layout_selected_kanban(kb_datas)
     layout.append(kb_layout)
     
     window = sg.Window(
@@ -141,7 +140,13 @@ def draw_main(
         layout,
         resizable = True,
         size = (900,600),
+        finalize = True,
         )
+    # Scrollable column fix
+    for c in scrollable_column_list:
+        frame_id = window[c].Widget.frame_id
+        canvas = window[c].Widget.canvas
+        canvas.bind("<Configure>", lambda event, canvas=canvas, frame_id=frame_id:configure(event, canvas, frame_id))
 
     while True:
         # Use Timeout to autosave (in millisecond)

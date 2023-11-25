@@ -1,4 +1,6 @@
 {
     "save_folder": "/home/tonton/blender_addons/addons/SKa-Simple-Kanban/example_structure",
-    "save_interval": "10"
+    "save_interval": "10",
+    "font": "Helvetica",
+    "font_size": "12"
 }

@@ -7,7 +7,7 @@ layout=[[psg.Text('Choose Boarding place',size=(20, 1), font='Lucida',justificat
         [psg.Text('Choose Destination ',size=(30, 1), font='Lucida',justification='left')],
         [psg.Combo(['New York','Chicago','Washington', 'Colorado','Ohio','San Jose','Fresno','San Fransisco'],key='dest')],
         [psg.Text('Choose additional Facilities',size=(30, 1), font='Lucida',justification='left')],
-        [psg.Listbox(values=['Welcome Drink', 'Extra Cushions', 'Organic Diet','Blanket', 'Neck Rest'], select_mode='extended', key='fac', size=(30, 6))],
+        [psg.Listbox(values=['Welcome Drink', 'Extra Cushions', 'Organic Diet','Blanket', 'Neck Rest'], key='fac', size=(30, 6))],
         [psg.Button('SAVE', font=('Times New Roman',12)),psg.Button('CANCEL', font=('Times New Roman',12))]]
 #Define Window
 win =psg.Window('Customise your Journey',layout)
@@ -15,6 +15,7 @@ win =psg.Window('Customise your Journey',layout)
 e,v=win.read()
 #close first window
 win.close()
+print(v['fac'])
 #access the selected value in the list box and add them to a string
 strx=""
 for val in v['fac']:

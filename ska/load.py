@@ -17,9 +17,12 @@ def _read_ska_markdown(filepath):
     card_datas["index"] = int(content.split("ska_index : ")[1].split("  ")[0])
     card_datas["author"] = content.split("ska_author : ")[1].split("  ")[0]
     card_datas["creation_date"] = content.split("ska_creation_date : ")[1].split("  ")[0]
+    card_datas["to_save"] = False
+    card_datas["to_remove"] = False
+    card_datas["to_add"] = False
     return card_datas
 
-def _get_available_kabans(folder):
+def _get_available_kanbans(folder):
     # Kaban json file :
     # filename : ska_name.json
     # Kaban Name
@@ -37,14 +40,14 @@ def _get_available_kabans(folder):
                 available_kabans.append(dataset)
     return available_kabans
 
-def _get_specific_kaban_informations(kaban_dataset):
+def _get_specific_kanban_informations(kanban_dataset):
     # Get Kaban Details and Contents
-    kaban_dataset["columns"] = _get_kaban_columns(
-                            os.path.dirname(kaban_dataset["filepath"]),
+    kanban_dataset["columns"] = _get_kanban_columns(
+                            os.path.dirname(kanban_dataset["filepath"]),
                             )
-    return kaban_dataset
+    return kanban_dataset
 
-def _get_kaban_columns(folder):
+def _get_kanban_columns(folder):
     # Kaban column folder
     # foldername : ska_name_columns
     # Column foldername : col_##_name
@@ -64,6 +67,7 @@ def _get_kaban_columns(folder):
                     "index" : int(tmp_name[:2]),
                     "folderpath" : col_path,
                     "cards" : _get_columns_content(col_path),
+                    "to_save": False,
                             }
                 )
                     
@@ -85,12 +89,16 @@ def _get_columns_content(column_folder):
             if file.startswith("card_"):
                 dataset = _read_ska_markdown(os.path.join(column_folder, file))
                 cards.append(dataset)
-    cards = sorted(
-        cards,
-        key = lambda c: c["index"],
-        )
     return cards
 
+# def _refresh_kb_datas(kb_datas):
+#     kaban_dataset["columns"] = _get_kaban_columns(
+#                             os.path.dirname(kaban_dataset["filepath"]),
+#                             )
+#     for kb in availables_kanban:
+#         if kb["name"]==values["key_kanban"][0]:
+#             kb_datas = load._get_specific_kaban_informations(kb)
+#     return kb_datas
     
 
 ### TESTS ###

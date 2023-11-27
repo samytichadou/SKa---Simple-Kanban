@@ -2,7 +2,6 @@ import PySimpleGUI as sg
 import time
 
 from . import ui_settings, ui_main, load
-from .window_function import center_window
 
 def layout_available_kanbans(availables_kanban):
     kanban_list = []
@@ -79,7 +78,7 @@ def draw_browser(
             # Get kanban datas
             for kb in availables_kanban:
                 if kb["name"]==values["key_kanban"][0]:
-                    kb_datas = load._get_specific_kaban_informations(kb)
+                    kb_datas = kb
                     break
 
             # Quit if datas

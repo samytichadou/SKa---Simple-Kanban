@@ -26,7 +26,7 @@ for setting in config_datas:
 # Getting available Kanbans
 if config_datas["save_folder"]:
     print("loading save folder")
-    available_kanbans = load._get_available_kabans(config_datas["save_folder"])
+    available_kanbans = load._get_available_kanbans(config_datas["save_folder"])
     ui_browser.draw_browser(
         available_kanbans,
         config_datas,

@@ -184,7 +184,7 @@ def setup_scrollable_column(window, scrollable_column_list):
         canvas = window[c].Widget.canvas
         canvas.bind("<Configure>", lambda event, canvas=canvas, frame_id=frame_id:configure(event, canvas, frame_id))
 
-def layout_card_frame(col_index, card_datas):
+def layout_card_frame(col_index, card_datas, show_content=False):
     line_number = card_datas["content"].count('\n') + 1
     card_id = f"col{col_index}_card{card_datas['index']}"
     frame = [
@@ -195,6 +195,7 @@ def layout_card_frame(col_index, card_datas):
                         card_datas["name"],
                         expand_x=True,
                         key=f"name_{card_id}",
+                        visible = not show_content,
                         )
                 ],
                 [
@@ -204,6 +205,7 @@ def layout_card_frame(col_index, card_datas):
                         expand_x=True,
                         key=f"content_{card_id}",
                         enable_events=True,
+                        visible = show_content,
                         )
                 ],
                 [
@@ -211,6 +213,7 @@ def layout_card_frame(col_index, card_datas):
                         f"{card_datas['creation_date']} - {card_datas['author']}",
                         expand_x=True,
                         key=f"creation_{card_id}",
+                        visible = not show_content,
                         )
                 ],
                 [
@@ -245,7 +248,7 @@ def layout_card_frame(col_index, card_datas):
     return frame
     
 
-def layout_colcontent(col_datas):
+def layout_colcontent(col_datas, show_content):
     # Card key = move{direction}_col{index}_card{index}
     col_layout = []
     cards = sorted(
@@ -259,7 +262,7 @@ def layout_colcontent(col_datas):
         card_id = f"col{col_datas['index']}_card{card['index']}"
 
         col_layout.append(
-            layout_card_frame(col_datas['index'], card)
+            layout_card_frame(col_datas['index'], card, show_content)
             )
 
     return col_layout
@@ -283,7 +286,7 @@ def layout_selected_kanban(kb_datas):
             ],
             [sg.HorizontalSeparator()],
             [sg.Column(
-                layout_colcontent(c),
+                layout_colcontent(c, kb_datas['show_content']),
                 expand_x=True,
                 expand_y=True,
                 scrollable=True,
@@ -313,6 +316,11 @@ def layout_base(kb_datas, button_size):
                 expand_x=True,
                 ),
             sg.Button(
+                "CONTENT",
+                expand_x=True,
+                size=button_size,
+                ),
+            sg.Button(
                 "BROWSER",
                 expand_x=True,
                 size=button_size,
@@ -337,69 +345,72 @@ def layout_base(kb_datas, button_size):
     ]
     return base_layout
 
-def update_layout(window, kb_datas, new_datas):
+def update_layout(window, new_datas, kb_datas=None):
     ### Cards
     # TODO Get glob variable to store layout frame
     # TODO or a way to read col elements length
     # TODO and toggle their visibility on if needed
     # Get number of cards
     # print(window["col0"].layout)
-    for column in new_datas['columns']:
-        oldcol = get_element_from_index(kb_datas['columns'], column['index'])
-        
-        # Count valid cards
-        frame_nb = oldcol['frame_number']
-        old_nb = 0
-        for c in oldcol['cards']:
-            if c['index'] != -1:
-                old_nb +=1
-        new_nb = 0
-        for c in column['cards']:
-            if c['index'] != -1:
-                new_nb +=1
-        
-        print()
-        print(f"COL{column['index']}")
-        print(f"old_nb   = {old_nb}")
-        print(f"new_nb   = {new_nb}")
-        print(f"frame_nb = {frame_nb}")
-        
-        # Hide cards if needed
-        if new_nb < old_nb:
-            for i in range(new_nb, frame_nb):
-                print()
-                print(f"Unvisibling : frame_col{column['index']}_card{i}")
-                window[f"frame_col{column['index']}_card{i}"].update(visible=False)
-        
-        # Add cards if needed
-        elif new_nb > old_nb:
-            diff = new_nb-old_nb
-            
-            # Turn on existing
-            if frame_nb > old_nb:
-                rdiff = frame_nb-old_nb
-                if frame_nb <= new_nb:
-                    max = frame_nb
-                else:
-                    max = new_nb
-                for i in range(max):
-                    print()
-                    print(f"Visibling : frame_col{column['index']}_card{i}")
-                    window[f"frame_col{column['index']}_card{i}"].update(visible=True)
-                    
-            for i in range(frame_nb, new_nb):
-                card = get_element_from_index(column['cards'], i)
-                print()
-                print(f"Creating : frame_col{column['index']}_card{i}")
-                window.extend_layout(
-                    window[f"col{column['index']}"],
-                    [layout_card_frame(column['index'], card)]
-                    )
-                column['frame_number'] += 1
-                
-        print()
     
-    # Get cards content
+    # Update cards location
+    if kb_datas:
+        for column in new_datas['columns']:
+            oldcol = get_element_from_index(kb_datas['columns'], column['index'])
+            
+            # Count valid cards
+            frame_nb = oldcol['frame_number']
+            old_nb = 0
+            for c in oldcol['cards']:
+                if c['index'] != -1:
+                    old_nb +=1
+            new_nb = 0
+            for c in column['cards']:
+                if c['index'] != -1:
+                    new_nb +=1
+            
+            print()
+            print(f"COL{column['index']}")
+            print(f"old_nb   = {old_nb}")
+            print(f"new_nb   = {new_nb}")
+            print(f"frame_nb = {frame_nb}")
+            
+            # Hide cards if needed
+            if new_nb < old_nb:
+                for i in range(new_nb, frame_nb):
+                    print()
+                    print(f"Unvisibling : frame_col{column['index']}_card{i}")
+                    window[f"frame_col{column['index']}_card{i}"].update(visible=False)
+        
+            # Add cards if needed
+            elif new_nb > old_nb:
+                diff = new_nb-old_nb
+                
+                # Turn on existing
+                if frame_nb > old_nb:
+                    rdiff = frame_nb-old_nb
+                    if frame_nb <= new_nb:
+                        max = frame_nb
+                    else:
+                        max = new_nb
+                    for i in range(max):
+                        print()
+                        print(f"Visibling : frame_col{column['index']}_card{i}")
+                        window[f"frame_col{column['index']}_card{i}"].update(visible=True)
+                        
+                for i in range(frame_nb, new_nb):
+                    card = get_element_from_index(column['cards'], i)
+                    print()
+                    print(f"Creating : frame_col{column['index']}_card{i}")
+                    window.extend_layout(
+                        window[f"col{column['index']}"],
+                        [layout_card_frame(column['index'], card, new_datas['show_content'])]
+                        )
+                    column['frame_number'] += 1
+                    
+            print()
+    
+    # Update cards content
     for column in new_datas['columns']:
         for card in column['cards']: 
             if (card['to_save'] or card['to_add']) and card['index'] != -1:
@@ -411,6 +422,39 @@ def update_layout(window, kb_datas, new_datas):
                 window[f"creation_{card_id}"].update(creation)
             
     return new_datas
+
+def update_show_content(window, kb_datas):
+    # Get values
+    if kb_datas['show_content']:
+        content = True
+        titles = False
+    else:
+        content = False
+        titles = True
+        
+    # Set values to cards
+    for col in kb_datas['columns']:
+        # TODO get hidden card
+        # TODO find how to resize correctly frame
+        # TODO find why first toggle does not work
+        for card in col['cards']:
+            if card['index'] != -1:
+                card_id = f"col{col['index']}_card{card['index']}"
+                
+                window[f"name_{card_id}"].update(visible = not kb_datas['show_content'])
+                window[f"creation_{card_id}"].update(visible = not kb_datas['show_content'])
+                window[f"content_{card_id}"].update(visible = kb_datas['show_content'])
+                
+                window.refresh()
+                window[f"col{col['index']}"].contents_changed()
+                window[f"frame_{card_id}"].update()
+                #window.contents_changed()
+                window.refresh()
+    
+    kb_datas['show_content'] = not kb_datas['show_content']
+    print(f"new : {kb_datas['show_content']}")
+    
+    return kb_datas
     
 def draw_main(
     kb_base_datas,
@@ -472,11 +516,16 @@ def draw_main(
                 
             # Update window and datas if needed
             if new_datas is not None:
-                kb_datas = update_layout(window, kb_datas, new_datas)
+                kb_datas = update_layout(window, new_datas, kb_datas)
             
         # Change card content
         elif event.startswith("content_"):
             kb_datas = update_card_content(kb_datas, event, values[event])
+            #update_layout(window, kb_datas)
+            
+        # Show/hide content
+        elif event == "CONTENT":
+            kb_datas = update_show_content(window, kb_datas)
 
         # Refresh button
         elif event == "REFRESH":

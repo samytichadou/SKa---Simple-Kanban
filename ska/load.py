@@ -36,7 +36,8 @@ def _get_available_kanbans(folder):
             if file.startswith("ska_") and file.endswith(".json"):
                 filepath = os.path.join(root, file)
                 dataset = _read_json(filepath)
-                dataset["filepath"]= filepath
+                dataset['filepath'] = filepath
+                dataset['show_content'] = False
                 available_kabans.append(dataset)
     return available_kabans
 

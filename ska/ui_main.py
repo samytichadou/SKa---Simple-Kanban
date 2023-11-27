@@ -207,6 +207,13 @@ def layout_card_frame(col_index, card_datas):
                         )
                 ],
                 [
+                    sg.Text(
+                        f"{card_datas['creation_date']} - {card_datas['author']}",
+                        expand_x=True,
+                        key=f"creation_{card_id}",
+                        )
+                ],
+                [
                     sg.Button(
                         "<-",
                         expand_x=True,
@@ -399,6 +406,9 @@ def update_layout(window, kb_datas, new_datas):
                 card_id = f"col{column['index']}_card{card['index']}"
                 window[f"name_{card_id}"].update(card['name'])
                 window[f"content_{card_id}"].update(card['content'])
+                
+                creation = f"{card['creation_date']} - {card['author']}"
+                window[f"creation_{card_id}"].update(creation)
             
     return new_datas
     
@@ -446,8 +456,6 @@ def draw_main(
         # Move card
         elif event.startswith("move"):
             new_datas = copy.deepcopy(kb_datas)
-            # print()
-            # print(new_datas)
             if event.startswith("moveUP"):
                 new_datas = move_up(new_datas, event)
             elif event.startswith("moveDOWN"):
@@ -465,13 +473,6 @@ def draw_main(
             # Update window and datas if needed
             if new_datas is not None:
                 kb_datas = update_layout(window, kb_datas, new_datas)
-                print(kb_datas)
-                # if event.startswith("moveUP")\
-                # or event.startswith("moveDOWN")\
-                # or event.startswith("moveDOWN"):
-                #     kb_datas = update_layout(window, kb_datas, new_datas)
-                # else:
-                # #     window, kb_datas = refresh_window(kb_base_datas, window, new_datas)
             
         # Change card content
         elif event.startswith("content_"):
@@ -491,9 +492,3 @@ def draw_main(
             config_file,
             )
 
-### TEST
-# settings = {
-#     "save_folder": "",
-#     "save_interval": 300
-# }
-# draw_settings(settings, "")

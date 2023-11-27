@@ -66,8 +66,9 @@ def _get_kanban_columns(folder):
                     "name" : tmp_name[3:],
                     "index" : int(tmp_name[:2]),
                     "folderpath" : col_path,
-                    "cards" : _get_columns_content(col_path),
+                    "frame_number": 0,
                     "to_save": False,
+                    "cards" : _get_columns_content(col_path),
                             }
                 )
                     

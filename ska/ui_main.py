@@ -141,7 +141,7 @@ def get_current_location(window):
     loc = window.CurrentLocation()
     return (loc[0],loc[1]-38)
 
-def refresh_window(kb_base_datas, window=None, kb_datas=None, button_size=(10, 1)):
+def refresh_window(kb_base_datas, show_content=False, window=None, kb_datas=None, button_size=(10, 1)):
     # Refresh datas
     if kb_datas is None:
         kb_datas = load._get_specific_kanban_informations(kb_base_datas)
@@ -150,8 +150,8 @@ def refresh_window(kb_base_datas, window=None, kb_datas=None, button_size=(10, 1
     for c in kb_datas['columns']:
         c['frame_number'] = len(c['cards'])
 
-    kb_layout, scrollable_column_list = layout_selected_kanban(kb_datas)
-    layout = layout_base(kb_datas, button_size)
+    kb_layout, scrollable_column_list = layout_selected_kanban(kb_datas, show_content)
+    layout = layout_base(kb_datas, button_size, show_content)
     layout.append(kb_layout)
     if window:
         window1 = sg.Window(
@@ -185,7 +185,7 @@ def setup_scrollable_column(window, scrollable_column_list):
         canvas.bind("<Configure>", lambda event, canvas=canvas, frame_id=frame_id:configure(event, canvas, frame_id))
 
 def layout_card_frame(col_index, card_datas, show_content=False):
-    line_number = card_datas["content"].count('\n') + 1
+    line_number = card_datas["content"].count('\n') - 4
     card_id = f"col{col_index}_card{card_datas['index']}"
     frame = [
         sg.Frame(
@@ -195,7 +195,7 @@ def layout_card_frame(col_index, card_datas, show_content=False):
                         card_datas["name"],
                         expand_x=True,
                         key=f"name_{card_id}",
-                        visible = not show_content,
+                        #visible = not show_content,
                         )
                 ],
                 [
@@ -267,7 +267,7 @@ def layout_colcontent(col_datas, show_content):
 
     return col_layout
 
-def layout_selected_kanban(kb_datas):
+def layout_selected_kanban(kb_datas, show_content = False):
     layout = []
     scrollable_column_keys = []
 
@@ -286,7 +286,7 @@ def layout_selected_kanban(kb_datas):
             ],
             [sg.HorizontalSeparator()],
             [sg.Column(
-                layout_colcontent(c, kb_datas['show_content']),
+                layout_colcontent(c, show_content),
                 expand_x=True,
                 expand_y=True,
                 scrollable=True,
@@ -308,18 +308,25 @@ def layout_selected_kanban(kb_datas):
     print(scrollable_column_keys)
     return layout, scrollable_column_keys
 
-def layout_base(kb_datas, button_size):
+def layout_base(kb_datas, button_size, show_content = False):
     base_layout = [
         [
             sg.Text(
                 f"Opened : {kb_datas['name']}",
                 expand_x=True,
                 ),
-            sg.Button(
-                "CONTENT",
-                expand_x=True,
-                size=button_size,
+            sg.Checkbox(
+                'Show Content',
+                show_content,
+                # default=False,
+                key = "CONTENT",
+                enable_events=True,
                 ),
+            # sg.Button(
+            #     "CONTENT",
+            #     expand_x=True,
+            #     size=button_size,
+            #     ),
             sg.Button(
                 "BROWSER",
                 expand_x=True,
@@ -416,6 +423,7 @@ def update_layout(window, new_datas, kb_datas=None):
             if (card['to_save'] or card['to_add']) and card['index'] != -1:
                 card_id = f"col{column['index']}_card{card['index']}"
                 window[f"name_{card_id}"].update(card['name'])
+                # window[f"frame_col{column['index']}_card{i}"].update(card['name'])
                 window[f"content_{card_id}"].update(card['content'])
                 
                 creation = f"{card['creation_date']} - {card['author']}"
@@ -423,38 +431,6 @@ def update_layout(window, new_datas, kb_datas=None):
             
     return new_datas
 
-def update_show_content(window, kb_datas):
-    # Get values
-    if kb_datas['show_content']:
-        content = True
-        titles = False
-    else:
-        content = False
-        titles = True
-        
-    # Set values to cards
-    for col in kb_datas['columns']:
-        # TODO get hidden card
-        # TODO find how to resize correctly frame
-        # TODO find why first toggle does not work
-        for card in col['cards']:
-            if card['index'] != -1:
-                card_id = f"col{col['index']}_card{card['index']}"
-                
-                window[f"name_{card_id}"].update(visible = not kb_datas['show_content'])
-                window[f"creation_{card_id}"].update(visible = not kb_datas['show_content'])
-                window[f"content_{card_id}"].update(visible = kb_datas['show_content'])
-                
-                window.refresh()
-                window[f"col{col['index']}"].contents_changed()
-                window[f"frame_{card_id}"].update()
-                #window.contents_changed()
-                window.refresh()
-    
-    kb_datas['show_content'] = not kb_datas['show_content']
-    print(f"new : {kb_datas['show_content']}")
-    
-    return kb_datas
     
 def draw_main(
     kb_base_datas,
@@ -525,11 +501,11 @@ def draw_main(
             
         # Show/hide content
         elif event == "CONTENT":
-            kb_datas = update_show_content(window, kb_datas)
+            window, kb_datas = refresh_window(kb_base_datas, values["CONTENT"], window)
 
         # Refresh button
         elif event == "REFRESH":
-            window, kb_datas = refresh_window(kb_base_datas, window)
+            window, kb_datas = refresh_window(kb_base_datas, values["CONTENT"], window)
         
     window.close()
 

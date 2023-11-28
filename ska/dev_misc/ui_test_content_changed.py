@@ -15,6 +15,7 @@ import PySimpleGUI as sg
 
 layout = [  [sg.Text('My Window')],
             [sg.Text('Click to add a row inside the Frame'), sg.B('+', key='-ADD FRAME-')],
+            [sg.Text('Click to remove a row inside the Frame'), sg.B('+', key='-REMOVE FRAME-')],
             [sg.Text('Click to add a row inside the Column'), sg.B('+', key='-ADD COL-')],
             [sg.Text('Click to add a row inside the Window'), sg.B('+', key='-ADD WIN-')],
             [sg.Frame('Frame',[[sg.T('Frame')]], key='-FRAME-')],
@@ -32,8 +33,11 @@ while True:             # Event Loop
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     if event == '-ADD FRAME-':
-        window.extend_layout(window['-FRAME-'], [[sg.T('A New Input Line'), sg.I(key=f'-IN-{i}-')]])
+        window.extend_layout(window['-FRAME-'], [[sg.T('A New Input Line', key=f"row_{i}")]])
         i += 1
+    elif event == '-REMOVE FRAME-':
+        window[f"row_{i-1}"].update(visible = False)
+        i -+ 1
     elif event == '-ADD COL-':
         window.extend_layout(window['-COL-'], [[sg.T('A New Input Line'), sg.I(key=f'-IN-{i}-')]])
         window.visibility_changed()

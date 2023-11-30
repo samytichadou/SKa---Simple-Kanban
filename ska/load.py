@@ -13,10 +13,11 @@ def _read_ska_markdown(filepath):
         
     content = ''.join(lines)
     card_datas["content"] = content
-    card_datas["name"] = content.split("ska_name : ")[1].split("  ")[0]
-    card_datas["index"] = int(content.split("ska_index : ")[1].split("  ")[0])
-    card_datas["author"] = content.split("ska_author : ")[1].split("  ")[0]
-    card_datas["creation_date"] = content.split("ska_creation_date : ")[1].split("  ")[0]
+    ska_datas = content.split("ska{")[1].split("}")[0]
+    card_datas["name"] = ska_datas.split("name:")[1].split(",")[0]
+    card_datas["index"] = int(ska_datas.split("index:")[1].split(",")[0])
+    card_datas["author"] = ska_datas.split("author:")[1].split(",")[0]
+    card_datas["creation_date"] = ska_datas.split("creation_date:")[1].split(",")[0]
     card_datas["to_save"] = False
     card_datas["to_remove"] = False
     card_datas["to_add"] = False

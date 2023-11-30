@@ -141,7 +141,7 @@ def get_current_location(window):
     loc = window.CurrentLocation()
     return (loc[0],loc[1]-38)
 
-def refresh_window(kb_base_datas, show_content=False, window=None, kb_datas=None, button_size=(10, 1)):
+def refresh_window(kb_base_datas, available_kanban, show_content=False, window=None, kb_datas=None, button_size=(10, 1)):
     # Refresh datas
     if kb_datas is None:
         kb_datas = load._get_specific_kanban_informations(kb_base_datas)
@@ -151,7 +151,7 @@ def refresh_window(kb_base_datas, show_content=False, window=None, kb_datas=None
         c['frame_number'] = len(c['cards'])
 
     kb_layout, scrollable_column_list = layout_selected_kanban(kb_datas, show_content)
-    layout = layout_base(kb_datas, button_size, show_content)
+    layout = layout_base(kb_datas, available_kanban, button_size, show_content)
     layout.append(kb_layout)
     if window:
         window1 = sg.Window(
@@ -185,7 +185,8 @@ def setup_scrollable_column(window, scrollable_column_list):
         canvas.bind("<Configure>", lambda event, canvas=canvas, frame_id=frame_id:configure(event, canvas, frame_id))
 
 def layout_card_frame(col_index, card_datas, show_content=False):
-    line_number = card_datas["content"].count('\n') - 4
+    line_number = card_datas["content"].count('\n') - 1
+    # line_number = 5
     card_id = f"col{col_index}_card{card_datas['index']}"
     frame = [
         sg.Frame(
@@ -308,12 +309,19 @@ def layout_selected_kanban(kb_datas, show_content = False):
     print(scrollable_column_keys)
     return layout, scrollable_column_keys
 
-def layout_base(kb_datas, button_size, show_content = False):
+def layout_base(kb_datas, available_kanban, button_size, show_content = False):
     base_layout = [
         [
-            sg.Text(
-                f"Opened : {kb_datas['name']}",
+            # sg.Text(
+            #     f"Opened : {kb_datas['name']}",
+            #     expand_x=True,
+            #     ),
+            sg.Combo(
+                [p["name"] for p in available_kanban],
                 expand_x=True,
+                default_value=kb_datas['name'],
+                key="AVAILABLE_KANBAN",
+                enable_events=True,
                 ),
             sg.Checkbox(
                 'Show Content',
@@ -362,6 +370,10 @@ def update_layout(window, new_datas, kb_datas=None):
     
     # Update cards location
     if kb_datas:
+        # tmp_datas = {}
+        # tmp_datas.clear()
+        # tmp_datas = copy.deepcopy(kb_datas)
+        # kb_datas.clear()
         for column in new_datas['columns']:
             oldcol = get_element_from_index(kb_datas['columns'], column['index'])
             
@@ -434,7 +446,7 @@ def update_layout(window, new_datas, kb_datas=None):
     
 def draw_main(
     kb_base_datas,
-    availables_kanban,
+    available_kanban,
     config_datas,
     config_file,
     ):
@@ -442,7 +454,7 @@ def draw_main(
     # Init variables
     browser = False
     
-    window, kb_datas = refresh_window(kb_base_datas)
+    window, kb_datas = refresh_window(kb_base_datas, available_kanban)
     print(kb_datas)
 
     # Scrollable column fix
@@ -501,18 +513,38 @@ def draw_main(
             
         # Show/hide content
         elif event == "CONTENT":
-            window, kb_datas = refresh_window(kb_base_datas, values["CONTENT"], window)
+            window, kb_datas = refresh_window(kb_base_datas, available_kanban, values["CONTENT"], window)
+            
+        elif event == "AVAILABLE_KANBAN":
+            print(values["AVAILABLE_KANBAN"])
+            print()
+            for kan in available_kanban:
+                print(kan)
+                # print(kan['name'])
+                if kan['name']==values["AVAILABLE_KANBAN"]\
+                and values["AVAILABLE_KANBAN"]!=kb_datas['name']:
+                    # base_datas = kan
+                    # print(kan)
+                    # print(base_datas)
+                    # new = load._get_specific_kanban_informations(kan)
+                    # print(new_kanban)
+                    # tmp_datas = update_layout(window, new_kanban, kb_datas)
+                    # kb_datas.clear()
+                    # kb_datas = copy.deepcopy(tmp_datas)
+                    # print(kb_datas)
+                    break
+            
 
         # Refresh button
         elif event == "REFRESH":
-            window, kb_datas = refresh_window(kb_base_datas, values["CONTENT"], window)
+            window, kb_datas = refresh_window(kb_base_datas, available_kanban, values["CONTENT"], window)
         
     window.close()
 
     # Open browser if needed
     if browser:
         ui_browser.draw_browser(
-            availables_kanban,
+            available_kanban,
             config_datas,
             config_file,
             )
